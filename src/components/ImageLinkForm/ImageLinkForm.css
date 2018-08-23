@@ -1,0 +1,17 @@
+.form{
+  background-color: #121213;
+  max-width: 70%;
+}
+input{
+  color: #F1F1F1;
+  background: #171C1D;
+}
+button{
+  color: #F1F1F1;
+  background: #282829;
+}
+@media screen and (max-width: 832px) {
+  .form{
+  max-width: 96%;
+  }
+}
