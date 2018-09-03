@@ -1,24 +1,28 @@
 {
-  "name": "facerecog",
+  "name": "facerecognition",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "clarifai": "^2.8.0",
-    "react": "^16.4.2",
-    "react-dom": "^16.4.2",
-    "react-scripts": "1.1.4",
+    "clarifai": "^2.9.0",
+    "react": "^16.6.1",
+    "react-dom": "^16.6.1",
+    "react-scripts": "2.1.1",
     "react-tilt": "^0.1.4",
     "tachyons": "^4.11.1"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test --env=jsdom",
+    "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "devDependencies": {
-    "babel-eslint": "^8.2.6",
-    "eslint": "^5.4.0",
-    "eslint-plugin-react": "^7.11.1"
-  }
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
 }
