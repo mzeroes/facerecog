@@ -1,0 +1,10 @@
+.Home {
+  display: flex;
+  flex-direction: column;
+}
+.Logo {
+  flex: 1;
+}
+.LinkForm {
+  flex: 1;
+}

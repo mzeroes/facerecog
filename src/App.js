@@ -1,134 +1,103 @@
-import React, { Component } from 'react';
-import Clarifai from 'clarifai';
-import FaceRecognition from './components/FaceRecognition/FaceRecognition';
-import Navigation from './components/Navigation/Navigation';
-import Signin from './components/Signin/Signin';
-import Register from './components/Register/Register';
-import Logo from './components/Logo/Logo';
-import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm';
-import Rank from './components/Rank/Rank';
-import './App.css';
+import React from "react";
+import Login from "./components/Signin/Signin";
+import SignUp from "./components/Register/Register";
+import Home from "./Home";
+import Cookies from "universal-cookie";
 
-//You must add your own API key here from Clarifai.
-const app = new Clarifai.App({
-    apiKey: '23260d6c247a4382a37c957c7f4533b7'
-});
+const cookies = new Cookies();
 
+class App extends React.Component {
+  constructor() {
+    super();
 
-class App extends Component {
-    constructor() {
-        super();
-        this.state = {
-            input: '',
-            imageUrl: '',
-            box: {},
-            route: 'signin',
-            isSignedIn: false,
-            user: {
-                id: '',
-                name: '',
-                email: '',
-                entries: 0,
-                joined: ''
-            }
-        }
+    let login = false;
+    const cookieToken = cookies.get("userToken");
+    if (cookieToken === "MyFakeToken") {
+      login = true;
     }
-
-    loadUser = (data) => {
-        this.setState({
-            user: {
-                id: data.id,
-                name: data.name,
-                email: data.email,
-                entries: data.entries,
-                joined: data.joined
-            }
-        })
+    this.state = {
+      route: "login",
+      loggedInStatus: login,
+      UserInfo: {
+        id: "",
+        name: "",
+        email: "",
+        entries: 0,
+        joined: ""
+      }
+    };
+  }
+  componentDidMount() {
+    if (this.state.loggedInStatus) {
+      this.setState({ route: "home" });
     }
+  }
+  /*
+  Available routes
+  home
+  login
+  logout
+  signup
+  */
+  handleUserInfo = info => {
+    this.setState({
+      UserInfo: {
+        id: info.id,
+        name: info.name,
+        email: info.email,
+        entries: info.entries,
+        joined: info.joined
+      }
+    });
+  };
+  onRouteChange = route => {
+    if (route === "logout") {
+      cookies.remove("userToken");
+      this.setState({ route: "login", loggedInStatus: false });
+    } else if (route === "home")
+      this.setState({ loggedInStatus: true, route: route });
+    else this.setState({ route: route });
+  };
 
-    calculateFaceLocation = (data) => {
-        const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box;
-        const image = document.getElementById('inputimage');
-        const width = Number(image.width);
-        const height = Number(image.height);
-        return {
-            leftCol: clarifaiFace.left_col * width,
-            topRow: clarifaiFace.top_row * height,
-            rightCol: width - (clarifaiFace.right_col * width),
-            bottomRow: height - (clarifaiFace.bottom_row * height)
-        }
-    }
-
-    displayFaceBox = (box) => {
-        this.setState({ box: box });
-    }
-
-    onInputChange = (event) => {
-        this.setState({ input: event.target.value });
-    }
-
-    onButtonSubmit = () => {
-        this.setState({ imageUrl: this.state.input });
-        app.models
-            .predict(
-                Clarifai.FACE_DETECT_MODEL,
-                this.state.input)
-            .then(response => {
-                if (response) {
-                    fetch('http://localhost:4000/image', {
-                        method: 'put',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            id: this.state.user.id
-                        })
-                    })
-                        .then(response => response.json())
-                        .then(count => {
-                            this.setState(Object.assign(this.state.user, { entries: count }))
-                        })
-
-                }
-                this.displayFaceBox(this.calculateFaceLocation(response))
-            })
-            .catch(err => console.log(err));
-    }
-
-    onRouteChange = (route) => {
-        if (route === 'logout') {
-            this.setState({ isSignedIn: false, route: Signin })
-        } else if (route === 'home') {
-            this.setState({ isSignedIn: true })
-        }
-        this.setState({ route: route });
-    }
-
-    render() {
-        const { isSignedIn, imageUrl, route, box } = this.state;
+  container = () => {
+    switch (this.state.route) {
+      case "home":
         return (
-            <div className="App">
-                <Navigation isSignedIn={isSignedIn} onRouteChange={this.onRouteChange} />
-                {route === 'home'
-                    ? <div>
-                        <Logo />
-                        <Rank
-                            name={this.state.user.name}
-                            entries={this.state.user.entries}
-                        />
-                        <ImageLinkForm
-                            onInputChange={this.onInputChange}
-                            onButtonSubmit={this.onButtonSubmit}
-                        />
-                        <FaceRecognition box={box} imageUrl={imageUrl} />
-                    </div>
-                    : (
-                        route === 'signin'
-                            ? <Signin loadUser={this.loadUser} onRouteChange={this.onRouteChange} />
-                            : <Register loadUser={this.loadUser} onRouteChange={this.onRouteChange} />
-                    )
-                }
-            </div>
+          <Home
+            user={this.state.UserInfo}
+            onRouteChange={this.onRouteChange.bind(this)}
+          />
         );
+      case "login":
+        return (
+          <Login
+            onRouteChange={this.onRouteChange.bind(this)}
+            handleUserInfo={this.handleUserInfo.bind(this)}
+          />
+        );
+      case "signup":
+        return <SignUp onRouteChange={this.onRouteChange.bind(this)} />;
+      default:
+        return <div>404 invalid route</div>;
     }
+  };
+
+  render() {
+    return (
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {/* For Debugging  */}
+        <h3>{JSON.stringify(this.state)}</h3>
+        {this.state.loggedInStatus ? (
+          <div style={{ alignItems: "center" }}>
+            <button onClick={() => this.onRouteChange("logout")}>logout</button>
+          </div>
+        ) : (
+          ""
+        )}
+        {this.container()}
+      </div>
+    );
+  }
 }
 
 export default App;
